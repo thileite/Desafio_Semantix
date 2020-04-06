@@ -1,0 +1,69 @@
+1. Qual o objetivo do comando cache no spark?
+R.: A criação de um RDD e a aplicação de operações de transformação não provocam 
+acessos ao conjunto de dados diretamente, apenas prepara uma instrução que poderá
+futuramente ser aplicada. Dessa forma, uma mesma ação, quando executada repetidamente,
+por exemplo, provocará acesso direto ao disco repetidas vezes, o que propaga
+o atraso de acesso a essas informações na mesma proporção. Para o caso do RDD,
+existe a opção de guardar esse resultado na memória através do comando cache.
+Assim, o resultado de alguma ação pode persistir na memória tornando mais
+rápidos acessos futuros a estes dados.
+
+2. O mesmo código implementado em Spark é normalmente mais rápido que a implementação equivalente em MapReduce. Por quê?
+R.: A Solução de MapReduce, que se encaixa nas primeiras ideias de processamento de Big Data, se apóia
+basicamente no acesso aos dados e reserva destes em disco. Com o tempo, nota-se que esta abordagem 
+apresenta um custo superior de tempo/velocidade. O Apache Spark surge com uma possibilidade
+que pode corrigir este tempo extra de acesso: a persistência de dados na memória RAM. 
+É conhecido que o acesso a dados da memória é muito mais rápido que o mesmo acesso em disco, o 
+que possibilita códigos implementados em Spark serem executados em velocidade muito superior a códigos
+equivalentes para MapReduce.
+
+3. Qual é a função do SparkContext?
+R.: Algumas abstrações importantes para compreensão de um ambiente em que podem ser utilizados
+os conceitos de processamento de Big Data são o Driver Program e o Cluster Manager. 
+Em resumo, o Driver Program é o hospedeiro da função main de uma aplicação Spark e o 
+Cluster Manager é o servidor responsável por se comunicar com todos os nós conectados
+formando um cluster.
+
+Neste sentido, a primeira configuração a ser feita pelo código de uma aplicação Spark
+é a conexão entre o Driver Program e o Cluster Manager. Esta conexão é feita a partir
+da criação do objeto SparkContext; neste instante o desenvolvedor deve passar as informações:
+nome da aplicação Spark, que será apresentada na interface do cluster, e o Cluster Manager
+a ser utilizado.
+
+4. Explique com suas palavras o que é Resilient Distributed Datasets (RDD).
+R.: O RDD é uma abstração para uma forma de processamento paralelo de dados em nós de um 
+cluster. O RDD é constituído de uma "receita" de passos de execução, que são
+as operações de TRANSFORMAÇÃO, e um conjunto de AÇÕES que de fato podem ser executadas
+em paralelo para formar uma coleção de dados que voltará ao servidor principal/master.
+Portanto, o RDD acaba retornando uma coleção de elementos que estão divididos através
+dos nós do cluster. O RDD não deve ser entendido como um conjunto de dados, um banco
+de dados, mas sim como um sistema preparado para coletar dados de inúmeros pontos da rede
+de uma forma organizada, que é através da receita de TRANSFORMAÇÃO, quando de fato for 
+solicitado alguma processamento, conjunto de AÇÕES, nestes dados.
+
+5. GroupByKey é menos eficiente que reduceByKey em grandes dataset. Por quê?
+R.: A diferença está na quantidade de informações, que trafegam na rede, utilizadas por 
+estas funções. Enquanto o GroupByKey não realiza nenhum agrupamento de informações já 
+no resultado de uma tarefa dentro de um nó do cluster, o reduceByKey promove um primeiro 
+agrupamento dentro do contexto de cada nó para ao final realizar uma única operação 
+de união das informações coletadas de cada nó. Dessa forma, o groupByKey acaba trafegando 
+muito mais dados de cada uma das pontas para apenas no final realizar um agrupamento.
+
+6.  Explique o que o código Scala abaixo faz.
+
+val textFile = sc . textFile ( "hdfs://..." ) val counts = textFile . flatMap ( line => line . split ( " " )) 
+. map ( word => ( word , 1 )) . reduceByKey ( _ + _ ) counts . saveAsTextFile ( "hdfs://..." )
+
+R.: Este código primeiramente está criando RDD com linhas de um arquivo de texto
+através do método textFile do objeto SparkContext sc. 
+O método textFile está lendo todas as linhas
+de um arquivo de entrada no formato HDFS (Hadoop Distributed File System) e 
+criando	um RDD com estas linhas. 
+Em seguida, o programa gera uma coleção única com todos as "palavras" do arquivo,
+ou seja, cada um dos termos separados por espaço no arquivo de entrada reunidos 
+em uma única lista.
+Então, cada um dos elementos dessa lista ganha um contador iniciado em 1, ou seja, 
+um contador de ocorrências de cada palavra.
+O comando reduceByKey então irá reduzir todas as ocorrências de palavras repetidas
+a um único elemento com contador refletindo esse número de ocorrências
+Por fim o resultado do contador é gravado em um HDFS.
